@@ -1,34 +1,42 @@
-name: Build ELIX APK
+name: Build APK
 
 on:
   workflow_dispatch:
   push:
-    branches: ["ana"]
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Kodu indir
+      - name: Repository'i indir
         uses: actions/checkout@v4
 
       - name: Java 17 kur
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: '17'
 
-      - name: Gradle kur
-        uses: gradle/actions/setup-gradle@v4
+      - name: Gradle cache
+        uses: actions/cache@v4
         with:
-          gradle-version: "8.7"
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
-      - name: APK oluştur
-        run: gradle assembleDebug --no-daemon
+      - name: Gradle ile APK oluştur
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
 
-      - name: APK'yı kaydet
+      - name: APK'yı yükle
         uses: actions/upload-artifact@v4
         with:
-          name: ELIX-debug-APK
+          name: Elix360-APK
           path: app/build/outputs/apk/debug/app-debug.apk
